@@ -1,18 +1,24 @@
 {
-  "name": "async-race",
+  "name": "async-race-underground",
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "author": {
+    "name": "Aleks GoodOmens"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "lint": "eslint --fix . ",
-    "prepare": "husky"
+    "format": "prettier src/ --list-different --ignore-unknown --write",
+    "check": "prettier src/ --check",
+    "lint": "eslint src/ --fix",
+    "prepare": "husky",
+    "deploy": "gh-pages -d dist -b gh-pages -m 'Deploy async-race-underground' --dest"
   },
   "lint-staged": {
-    "*.ts": "eslint",
-    "*": "prettier --write"
+    "*.ts": "eslint --fix",
+    "*": "prettier --write --ignore-unknown"
   },
   "devDependencies": {
     "@eslint/js": "^9.23.0",
@@ -20,6 +26,7 @@
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "eslint-plugin-unicorn": "^58.0.0",
+    "gh-pages": "^6.3.0",
     "globals": "^16.0.0",
     "husky": "^9.1.7",
     "prettier": "3.5.3",
