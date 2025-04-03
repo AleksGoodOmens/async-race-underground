@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.husky/
+.gitignore
+.prettierignore
+.prettierrc
+node_modules/
+dist/

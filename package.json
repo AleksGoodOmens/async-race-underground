@@ -14,7 +14,7 @@
     "check": "prettier src/ --check",
     "lint": "eslint src/ --fix",
     "prepare": "husky",
-    "deploy": "gh-pages -d dist -b gh-pages -m 'Deploy async-race-underground' --dest"
+    "deploy": "gh-pages -d dist -b gh-pages -m 'Deploy async-race-underground'"
   },
   "lint-staged": {
     "*.ts": "eslint --fix",
