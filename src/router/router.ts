@@ -16,7 +16,6 @@ export class Router {
     this.handlePathChange();
   }
   public navigate(url: string): void {
-    console.log(url);
     history.pushState({}, '', url);
     this.handlePathChange();
   }
@@ -33,7 +32,7 @@ export class Router {
 
   private handlePathChange(): void {
     const request = globalThis.location.pathname;
-
+    console.log(globalThis.location);
     const route = this._routes.find((r) => r.path === request);
     if (!route) {
       this.navigate(PATH.NOTFOUND);

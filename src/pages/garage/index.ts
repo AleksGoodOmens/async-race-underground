@@ -46,6 +46,14 @@ export class GaragePage extends Page {
 
   public changePage(direction: directions) {
     this._currentPage += direction;
+    const searchParameters = new URLSearchParams();
+    searchParameters.set(data.searchParams.page, String(this._currentPage));
+
+    history.pushState(
+      null,
+      '',
+      `${window.location.pathname}?${searchParameters.toString()}`
+    );
     this.update();
   }
 
