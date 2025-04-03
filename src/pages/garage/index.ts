@@ -3,11 +3,13 @@ import { getData } from '../../api/getData';
 import { Page } from '../../base/page';
 import { CarList } from '../../components/car-list';
 import { Link } from '../../components/link';
+import { Pagination } from '../../components/pagination';
+import { RandomCars } from '../../components/random-cars';
 import { App } from '../../main';
 import { PATH } from '../../router/path';
 import { buildUrl } from '../../utils/buildUrl';
 import { getNumberValueFromSearchParameters } from '../../utils/getNumberValueFromSearchParameters';
-import { ICar } from './types';
+import { directions, ICar } from './types';
 
 const data = {
   title: 'Garage',
@@ -20,12 +22,31 @@ const data = {
 export class GaragePage extends Page {
   private _carList: CarList;
   private _cars: ICar[];
+  private _totalCars: number;
   private _errorMessage: string | null;
+  private _pagination: Pagination;
+  private _randomCars: RandomCars;
+  private _currentPage: number;
+
   constructor(app: App) {
     super(app);
     this._errorMessage = null;
     this._cars = [];
     this._carList = new CarList();
+    this._pagination = new Pagination((direction: directions) =>
+      this.changePage(direction)
+    );
+    this._randomCars = new RandomCars(() => this.update());
+    this._totalCars = 0;
+    this._currentPage = getNumberValueFromSearchParameters(
+      data.searchParams.page,
+      data.defaultPage
+    );
+  }
+
+  public changePage(direction: directions) {
+    this._currentPage += direction;
+    this.update();
   }
 
   public async view() {
@@ -34,16 +55,22 @@ export class GaragePage extends Page {
     title.textContent = data.title;
 
     const winnersLink = new Link({
-      textContent: data.link,
       href: PATH.WINNERS,
+      textContent: data.link,
       callback: () => this._app.router.navigate(PATH.WINNERS),
     }).link;
 
     await this.fetchCars();
 
-    this._carList.view(this._cars, this._errorMessage);
+    this.update();
 
-    this.page.append(title, winnersLink, this._carList.list);
+    this.page.append(
+      title,
+      winnersLink,
+      this._pagination.htmlElement,
+      this._randomCars.element,
+      this._carList.list
+    );
     this._app.main.append(this.page);
   }
 
@@ -53,10 +80,7 @@ export class GaragePage extends Page {
         data.searchParams.limit,
         data.defaultLimit
       ),
-      [data.searchParams.page]: getNumberValueFromSearchParameters(
-        data.searchParams.page,
-        data.defaultPage
-      ),
+      [data.searchParams.page]: this._currentPage,
     });
 
     const returnedData = await getData<ICar[]>(url);
@@ -67,5 +91,20 @@ export class GaragePage extends Page {
     }
 
     this._cars = returnedData.data;
+
+    if (returnedData.totalAmount) {
+      const value = Number.parseInt(returnedData.totalAmount);
+
+      this._totalCars = value;
+    }
+  }
+
+  public async update() {
+    await this.fetchCars();
+    this._carList.view(this._cars, this._errorMessage);
+    this._pagination.update({
+      totalPages: Math.ceil(this._totalCars / data.defaultLimit),
+      currentPage: this._currentPage,
+    });
   }
 }

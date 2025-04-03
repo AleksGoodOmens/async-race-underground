@@ -1,7 +1,7 @@
 import { ICar } from '../../pages/garage/types';
 
 const data = {
-  message: 'Now cars at list',
+  message: 'No cars at list',
 };
 
 export class CarList {
@@ -39,11 +39,11 @@ export class CarList {
 
       this._list.append(...carsElements);
       return;
+    } else {
+      const message = document.createElement('h2');
+      message.textContent = error || data.message;
+      this._list.append(message);
     }
-
-    const message = document.createElement('h2');
-    message.textContent = error || data.message;
-    this._list.append(message);
   }
 
   public get list() {
