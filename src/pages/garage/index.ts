@@ -1,3 +1,4 @@
+import { deleteCar } from '../../api/deleteCar';
 import { endpoints } from '../../api/endpoints';
 import { getData } from '../../api/getData';
 import { Page } from '../../base/page';
@@ -33,9 +34,10 @@ export class GaragePage extends Page {
     this._errorMessage = null;
     this._cars = [];
     this._carList = new CarList();
-    this._pagination = new Pagination((direction: directions) =>
-      this.changePage(direction)
-    );
+    this._pagination = new Pagination({
+      changePage: (direction: directions) => this.changePage(direction),
+      clearList: () => this.clearList(),
+    });
     this._randomCars = new RandomCars(() => this.update());
     this._totalCars = 0;
     this._currentPage = getNumberValueFromSearchParameters(
@@ -49,11 +51,8 @@ export class GaragePage extends Page {
     const searchParameters = new URLSearchParams();
     searchParameters.set(data.searchParams.page, String(this._currentPage));
 
-    history.pushState(
-      null,
-      '',
-      `${window.location.pathname}?${searchParameters.toString()}`
-    );
+    window.location.hash = `/${endpoints.GARAGE}?${searchParameters.toString()}`;
+
     this.update();
   }
 
@@ -68,10 +67,6 @@ export class GaragePage extends Page {
       callback: () => this._app.router.navigate(PATH.WINNERS),
     }).link;
 
-    await this.fetchCars();
-
-    this.update();
-
     this.page.append(
       title,
       winnersLink,
@@ -80,6 +75,19 @@ export class GaragePage extends Page {
       this._carList.list
     );
     this._app.main.append(this.page);
+
+    await this.fetchCars();
+
+    this.update();
+  }
+
+  public async clearList() {
+    const promises = this._cars.map((car) => {
+      if (car.id) return deleteCar(car.id);
+    });
+    await Promise.all(promises);
+
+    await this.update();
   }
 
   public async fetchCars() {

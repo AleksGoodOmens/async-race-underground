@@ -44,7 +44,7 @@ export class Pagination {
 
     clear.addEventListener('click', async () => {
       clear.disabled = true;
-      await this._clearList();
+      this._clearList();
       clear.disabled = false;
     });
 

@@ -31,7 +31,16 @@ export class Router {
   }
 
   private handlePathChange(): void {
-    const request = window.location.hash || '#/';
+    let request = window.location.hash || '#/';
+    const startIndex = 0;
+
+    const endIndex = request.indexOf('?');
+
+    console.log(request);
+
+    if (endIndex > startIndex) request = request.slice(startIndex, endIndex);
+
+    console.log(request);
 
     const route = this._routes.find((r) => r.path === request);
     if (!route) {
