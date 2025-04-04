@@ -13,7 +13,8 @@
     "format": "prettier src/ --list-different --ignore-unknown --write",
     "check": "prettier src/ --check",
     "lint": "eslint src/ --fix",
-    "prepare": "husky"
+    "prepare": "husky",
+    "deploy": "gh-pages -d dist -b gh-pages -m 'Deploy async-race-underground'"
   },
   "lint-staged": {
     "*.ts": "eslint --fix",

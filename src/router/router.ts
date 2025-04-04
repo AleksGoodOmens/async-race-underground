@@ -32,7 +32,7 @@ export class Router {
 
   private handlePathChange(): void {
     const request = globalThis.location.pathname;
-    console.log(globalThis.location);
+    console.log(request);
     const route = this._routes.find((r) => r.path === request);
     if (!route) {
       this.navigate(PATH.NOTFOUND);
