@@ -13,16 +13,16 @@ export class Router {
   constructor(app: App) {
     this._routes = this.createRoutes();
     this._app = app;
+    window.addEventListener('hashchange', () => this.handlePathChange());
     this.handlePathChange();
   }
   public navigate(url: string): void {
-    history.pushState({}, '', url);
+    window.location.hash = url;
     this.handlePathChange();
   }
 
   private createRoutes(): IRoutes[] {
     return [
-      { path: '', page: () => this._app._homePage.view() },
       { path: PATH.HOME, page: () => this._app._homePage.view() },
       { path: PATH.GARAGE, page: () => this._app._garagePage.view() },
       { path: PATH.WINNERS, page: () => this._app._winnersPage.view() },
@@ -31,8 +31,8 @@ export class Router {
   }
 
   private handlePathChange(): void {
-    const request = globalThis.location.pathname;
-    console.log(request);
+    const request = window.location.hash || '#/';
+
     const route = this._routes.find((r) => r.path === request);
     if (!route) {
       this.navigate(PATH.NOTFOUND);
