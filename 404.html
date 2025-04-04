@@ -4,9 +4,8 @@
     <meta charset="utf-8" />
     <script>
       window.location.replace(
-        '/async-race-underground' +
-          window.location.pathname +
-          window.location.search
+        '/async-race-underground/index.html?p=' +
+          encodeURIComponent(window.location.pathname + window.location.search)
       );
     </script>
   </head>
