@@ -4,7 +4,7 @@ const data = {
   back: '<<',
   next: '>>',
   amount: '1/1',
-  clear: 'Clear',
+  clear: 'delete list',
   ONE: 1,
 };
 
@@ -13,18 +13,25 @@ interface IParameters {
   totalPages: number;
 }
 
+interface IConstructorParameters {
+  changePage: (direction: directions) => void;
+  clearList: () => void;
+}
+
 export class Pagination {
   private _container: HTMLDivElement;
   private _back: HTMLButtonElement;
   private _next: HTMLButtonElement;
   private _amount: HTMLDivElement;
   private _changePage: (direction: directions) => void;
-  constructor(changePage: (direction: directions) => void) {
+  private _clearList: () => void;
+  constructor(parameters: IConstructorParameters) {
     this._container = document.createElement('div');
     this._back = document.createElement('button');
     this._next = document.createElement('button');
     this._amount = document.createElement('div');
-    this._changePage = changePage;
+    this._changePage = parameters.changePage;
+    this._clearList = parameters.clearList;
     this.init();
   }
 
@@ -34,6 +41,12 @@ export class Pagination {
     this._amount.textContent = data.amount;
     const clear = document.createElement('button');
     clear.textContent = data.clear;
+
+    clear.addEventListener('click', async () => {
+      clear.disabled = true;
+      await this._clearList();
+      clear.disabled = false;
+    });
 
     this._back.addEventListener('click', () =>
       this.changePageHandler(directions.back)
