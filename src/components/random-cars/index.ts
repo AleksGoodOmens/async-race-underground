@@ -1,7 +1,7 @@
-import { endpoints } from '../../api/endpoints';
+import { postCar } from '../../api/postCar';
+import { BaseElement } from '../../base/base-element';
 import { carsModels } from '../../pages/garage/cars-models';
 import { ICar } from '../../pages/garage/types';
-import { buildUrl } from '../../utils/buildUrl';
 
 const data = {
   title: 'Random Cars',
@@ -11,35 +11,32 @@ const data = {
   create: 'Create',
   error: 'Something go wrong, car not added',
   color: {
-    maxHEX: 256,
+    maxHEX: 16777215,
     hex: 16,
     min: 6,
   },
 };
 
-type returnData =
-  | ICar
-  | {
-      error: string;
-    };
-
 export class RandomCars {
   private _element: HTMLDivElement;
   private _amount: HTMLInputElement;
-  private _updateList: () => void;
-  constructor(updateList: () => void) {
-    this._element = document.createElement('div');
-    this._amount = document.createElement('input');
+  private _updateList: (newCars: ICar[]) => void;
+  constructor(updateList: (newCars: ICar[]) => void) {
+    this._element = new BaseElement<HTMLDivElement>({ tag: 'div' }).element;
+    this._amount = new BaseElement<HTMLInputElement>({ tag: 'input' }).element;
     this._updateList = updateList;
     this.init();
   }
 
   private init() {
-    const title = document.createElement('h2');
-    title.textContent = data.title;
-
-    const label = document.createElement('label');
-    label.textContent = data.label;
+    const title = new BaseElement<HTMLHeadingElement>({
+      tag: 'h2',
+      textContent: data.title,
+    });
+    const label = new BaseElement<HTMLLabelElement>({
+      tag: 'label',
+      textContent: data.label,
+    });
 
     this._amount.type = 'number';
     this._amount.min = String(data.minimum);
@@ -48,14 +45,16 @@ export class RandomCars {
 
     label.append(this._amount);
 
-    const create = document.createElement('button');
-    create.textContent = data.create;
+    const create = new BaseElement<HTMLButtonElement>({
+      tag: 'button',
+      textContent: data.create,
+    });
 
-    create.addEventListener('click', (event: Event) =>
+    create.element.addEventListener('click', (event: Event) =>
       this.createHandler(event)
     );
 
-    this._element.append(title, label, create);
+    this._element.append(title.element, label.element, create.element);
   }
 
   private async createHandler(event: Event) {
@@ -64,11 +63,15 @@ export class RandomCars {
       target.disabled = true;
       const allCarsAdded = [];
       for (let i = 0; i < Number.parseInt(this._amount.value); i++) {
-        allCarsAdded.push(this.addCar(this.getRandomCar()));
+        allCarsAdded.push(postCar(this.getRandomCar()));
       }
 
-      await Promise.all(allCarsAdded);
-      this._updateList();
+      const newCars = await Promise.all(allCarsAdded);
+      const cars = newCars.filter(
+        (car) => !Object.hasOwn(car, 'error')
+      ) as ICar[];
+
+      this._updateList(cars);
       target.disabled = false;
     }
   }
@@ -88,30 +91,6 @@ export class RandomCars {
     return `#${Math.floor(Math.random() * data.color.maxHEX)
       .toString(data.color.hex)
       .padStart(data.color.min, '0')}`;
-  }
-
-  public async addCar(car: ICar): Promise<returnData> {
-    const url = buildUrl(endpoints.BASE, endpoints.GARAGE, {});
-
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(car),
-      });
-
-      if (!response.ok) return { error: data.error + response.statusText };
-
-      const json: ICar = await response.json();
-      return json;
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        return {
-          error: error.message,
-        };
-      }
-      return { error: data.error };
-    }
   }
 
   public get element() {
