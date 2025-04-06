@@ -47,7 +47,7 @@ export class GaragePage extends Page {
 
     this.fetchCars();
 
-    this._carList = new CarList();
+    this._carList = new CarList(() => this.fetchCars());
     this._pagination = new Pagination({
       changePage: (direction: directions) => this.changePage(direction),
       clearList: () => this.clearList(),
