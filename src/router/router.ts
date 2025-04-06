@@ -1,18 +1,17 @@
-import { App } from '../main';
+import { IRoutes } from '../main';
 import { PATH } from './path';
 
-export type IRoutes = {
-  path: string;
-  page: () => void;
+const data = {
+  hashAndSlash: 1,
 };
 
 export class Router {
   private _routes: IRoutes[];
-  private _app: App;
+  private _currentPath: string;
 
-  constructor(app: App) {
-    this._routes = this.createRoutes();
-    this._app = app;
+  constructor(routes: IRoutes[]) {
+    this._routes = routes;
+    this._currentPath = '#/';
     window.addEventListener('hashchange', () => this.handlePathChange());
     this.handlePathChange();
   }
@@ -21,33 +20,20 @@ export class Router {
     this.handlePathChange();
   }
 
-  private createRoutes(): IRoutes[] {
-    return [
-      { path: PATH.HOME, page: () => this._app._homePage.view() },
-      { path: PATH.GARAGE, page: () => this._app._garagePage.view() },
-      { path: PATH.WINNERS, page: () => this._app._winnersPage.view() },
-      { path: PATH.NOTFOUND, page: () => this._app._notFoundPage.view() },
-    ];
-  }
-
   private handlePathChange(): void {
-    let request = window.location.hash || '#/';
-    const startIndex = 0;
+    const hash = window.location.hash.slice(data.hashAndSlash);
+    const url = new URL(hash, window.location.origin);
+    const pathname = url.pathname;
 
-    const endIndex = request.indexOf('?');
+    if (pathname !== this._currentPath) {
+      this._currentPath = pathname;
+      const route = this._routes.find((r) => r.path === pathname);
+      if (!route) {
+        this.navigate(PATH.NOTFOUND);
+        return;
+      }
 
-    console.log(request);
-
-    if (endIndex > startIndex) request = request.slice(startIndex, endIndex);
-
-    console.log(request);
-
-    const route = this._routes.find((r) => r.path === request);
-    if (!route) {
-      this.navigate(PATH.NOTFOUND);
-      return;
+      route.page();
     }
-
-    route.page();
   }
 }
