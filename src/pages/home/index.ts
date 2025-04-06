@@ -1,6 +1,6 @@
+import { BaseElement } from '../../base/base-element';
 import { Page } from '../../base/page';
 import { Link } from '../../components/link';
-import { App } from '../../main';
 import { PATH } from '../../router/path';
 
 const data = {
@@ -9,22 +9,20 @@ const data = {
 };
 
 export class HomePage extends Page {
-  constructor(app: App) {
-    super(app);
+  constructor(navigateTo: () => void) {
+    super();
+    this.view(navigateTo);
   }
 
-  public view() {
-    this.clear();
-    const title = document.createElement('h1');
-    title.textContent = data.title;
+  private view(navigateTo: () => void) {
+    const title = new BaseElement({ tag: 'h1', textContent: data.title });
 
     const startLink = new Link({
       textContent: data.start,
       href: PATH.GARAGE,
-      callback: () => this._app.router.navigate(PATH.GARAGE),
-    }).link;
+      callback: navigateTo,
+    });
 
-    this.page.append(title, startLink);
-    this._app.main.append(this.page);
+    this.page.append(title.element, startLink.link);
   }
 }
