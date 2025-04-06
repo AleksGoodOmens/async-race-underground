@@ -1,23 +1,17 @@
-import { App } from '../main';
-
 export abstract class Page {
-  public page: HTMLDivElement;
-  public _app: App;
+  private _page: HTMLDivElement;
 
-  constructor(app: App) {
-    this.page = document.createElement('div');
-    this._app = app;
+  constructor() {
+    this._page = document.createElement('div');
   }
 
-  public abstract view(): void;
-
   public clear() {
-    while (this._app.main.firstChild) {
-      this._app.main.firstChild.remove();
+    while (this._page.firstChild) {
+      this._page.firstChild.remove();
     }
+  }
 
-    while (this.page.firstChild) {
-      this.page.firstChild.remove();
-    }
+  public get page() {
+    return this._page;
   }
 }
