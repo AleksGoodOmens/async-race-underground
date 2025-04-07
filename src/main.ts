@@ -3,11 +3,9 @@ import './style.css';
 import { BaseElement } from './base/base-element';
 import { Header } from './layout/header';
 import { GaragePage } from './pages/garage';
-// import { GaragePage } from './pages/garage';
 import { HomePage } from './pages/home';
+import { NotFoundPage } from './pages/not-found';
 import { WinnersPage } from './pages/winners';
-// import { NotFoundPage } from './pages/not-found';
-// import { WinnersPage } from './pages/winners';
 import { PATH } from './router/path';
 import { Router } from './router/router';
 
@@ -19,10 +17,6 @@ export type IRoutes = {
 export class App {
   private _container: BaseElement<HTMLDivElement>;
   private _content: BaseElement<HTMLDivElement>;
-  // public _homePage: HomePage;
-  // public _garagePage: GaragePage;
-  // public _winnersPage: WinnersPage;
-  // public _notFoundPage: NotFoundPage;
   public router: Router;
 
   constructor() {
@@ -35,10 +29,6 @@ export class App {
       className: 'main',
     });
     this.view();
-
-    // this._garagePage = new GaragePage(this);
-    // this._winnersPage = new WinnersPage(this);
-    // this._notFoundPage = new NotFoundPage(this);
 
     this.router = new Router(this.createRoutes());
   }
@@ -66,7 +56,13 @@ export class App {
             new WinnersPage(() => this.router.navigate(PATH.GARAGE)).page
           ),
       },
-      // { path: PATH.NOTFOUND, page: () => this._notFoundPage.view() },
+      {
+        path: PATH.NOTFOUND,
+        page: () =>
+          this.showPage(
+            new NotFoundPage(() => this.router.navigate(PATH.HOME)).page
+          ),
+      },
     ];
   }
 
