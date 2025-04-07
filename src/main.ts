@@ -5,6 +5,7 @@ import { Header } from './layout/header';
 import { GaragePage } from './pages/garage';
 // import { GaragePage } from './pages/garage';
 import { HomePage } from './pages/home';
+import { WinnersPage } from './pages/winners';
 // import { NotFoundPage } from './pages/not-found';
 // import { WinnersPage } from './pages/winners';
 import { PATH } from './router/path';
@@ -51,8 +52,20 @@ export class App {
             new HomePage(() => this.router.navigate(PATH.GARAGE)).page
           ),
       },
-      { path: PATH.GARAGE, page: () => this.showPage(new GaragePage().page) },
-      // { path: PATH.WINNERS, page: () => this._winnersPage.view() },
+      {
+        path: PATH.GARAGE,
+        page: () =>
+          this.showPage(
+            new GaragePage(() => this.router.navigate(PATH.WINNERS)).page
+          ),
+      },
+      {
+        path: PATH.WINNERS,
+        page: () =>
+          this.showPage(
+            new WinnersPage(() => this.router.navigate(PATH.GARAGE)).page
+          ),
+      },
       // { path: PATH.NOTFOUND, page: () => this._notFoundPage.view() },
     ];
   }

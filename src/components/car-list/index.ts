@@ -1,9 +1,11 @@
 import { BaseElement } from '../../base/base-element';
 import { ICar } from '../../pages/garage/types';
 import { CarItem } from '../car-item/carItem';
+import styles from './car-list.module.css';
 
 interface IParameters {
-  fetchCars: () => Promise<void>;
+  cars: ICar[];
+  fetchCars: () => void;
   setTunning: (car: ICar) => void;
 }
 
@@ -11,13 +13,23 @@ const data = {
   message: 'No cars at list',
 };
 
+const classes = {
+  container: styles['container'],
+};
+
 export class CarList {
   private _list: HTMLUListElement;
   private _fetch: () => void;
   private _tunning: (car: ICar) => void;
+  private _carItems: CarItem[];
+
   constructor(parameters: IParameters) {
-    this._list = new BaseElement<HTMLUListElement>({ tag: 'ul' }).element;
+    this._list = new BaseElement<HTMLUListElement>({
+      tag: 'ul',
+      className: classes.container,
+    }).element;
     this._fetch = () => parameters.fetchCars();
+    this._carItems = [];
     this._tunning = parameters.setTunning;
   }
 
@@ -32,16 +44,21 @@ export class CarList {
         }).element
       );
 
-    this._list.append(
-      ...cars.map(
-        (car) =>
-          new CarItem({
-            car,
-            fetch: () => this._fetch(),
-            tunning: (car: ICar) => this._tunning(car),
-          }).element
-      )
+    const carItems = cars.map(
+      (car) =>
+        new CarItem({
+          car,
+          fetch: () => this._fetch(),
+          tunning: (car: ICar) => this._tunning(car),
+        })
     );
+
+    this._list.append(...carItems.map((car) => car.element));
+    this._carItems = carItems;
+  }
+
+  public get cars() {
+    return this._carItems;
   }
 
   public get list() {

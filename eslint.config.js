@@ -27,6 +27,10 @@ export default defineConfig([
     },
     rules: {
       '@/no-magic-numbers': 'error',
+      'max-lines-per-function': [
+        'error',
+        { max: 40, skipBlankLines: true, skipComments: true },
+      ],
       'unicorn/no-array-callback-reference': 'off',
       'unicorn/no-array-for-each': 'off',
       'unicorn/no-array-reduce': 'off',
