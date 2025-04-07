@@ -34,62 +34,80 @@ const classes = {
   select: styles['select'],
   start: styles['start'],
   stop: styles['stop'],
+  win: styles['win'],
 };
 
 export class CarItem {
+  private _parameters: IParameters;
   private _element: BaseElement<HTMLLIElement>;
-  private _fetch: () => void;
-  private _tunning: (car: ICar) => void;
+  private _buttons: {
+    _deleteButton: Button;
+    _selectButton: Button;
+    _startButton: Button;
+    _stopButton: Button;
+  };
   private _name: BaseElement<HTMLDivElement>;
-  private _deleteBtn: Button;
-  private _selectBtn: Button;
-  private _startBtn: Button;
-  private _stopBtn: Button;
   private _track: BaseElement<HTMLDivElement>;
   private _model: CarIcon;
   private _carAnimator: CarAnimator;
+  private _isWinning: boolean;
 
   constructor(parameters: IParameters) {
-    this._fetch = parameters.fetch;
-    this._tunning = parameters.tunning;
+    this._parameters = {
+      car: parameters.car,
+      fetch: parameters.fetch,
+      tunning: parameters.tunning,
+    };
+    this._buttons = this.drawButtons();
     this._element = new BaseElement({
       tag: 'li',
       className: classes.container,
     });
+    this._track = new BaseElement({ tag: 'div', className: classes.track });
     this._name = new BaseElement({
       tag: 'div',
       className: classes.name,
       textContent: shortString(parameters.car.name),
     });
-    this._deleteBtn = new Button({
-      textContent: data.delBtn,
-      className: classes.delete,
-      callback: () => {
-        if (parameters.car.id) this.handleDelete(parameters.car.id);
-      },
-    });
-    this._selectBtn = new Button({
-      textContent: data.select,
-      className: classes.select,
-      callback: () => {
-        this.handleSelect(parameters.car);
-      },
-    });
-    this._startBtn = new Button({
-      textContent: data.start,
-      className: classes.start,
-      callback: () => this.handleStart(parameters.car.id),
-    });
-    this._stopBtn = new Button({
-      textContent: data.stop,
-      className: classes.stop,
-      callback: () => this.handleStop(parameters.car.id),
-    });
-    this._track = new BaseElement({ tag: 'div', className: classes.track });
     this._model = new CarIcon({
       className: 'svg',
       color: parameters.car.color,
     });
+    this._carAnimator = new CarAnimator(this._model.icon);
+    this._isWinning = false;
+
+    this.init();
+  }
+
+  private drawButtons() {
+    const _deleteButton = new Button({
+      textContent: data.delBtn,
+      className: classes.delete,
+      callback: () => {
+        this.handleDelete(this._parameters.car.id as number);
+      },
+    });
+    const _selectButton = new Button({
+      textContent: data.select,
+      className: classes.select,
+      callback: () => {
+        this.handleSelect(this._parameters.car);
+      },
+    });
+    const _startButton = new Button({
+      textContent: data.start,
+      className: classes.start,
+      callback: () => this.handleTestDrive(this._parameters.car.id as number),
+    });
+    const _stopButton = new Button({
+      textContent: data.stop,
+      className: classes.stop,
+      callback: () => this.handleStop(this._parameters.car.id),
+    });
+    return { _deleteButton, _selectButton, _startButton, _stopButton };
+  }
+
+  private init() {
     this._model.icon.classList.add(classes.car);
 
     const carControls = new BaseElement({
@@ -97,14 +115,12 @@ export class CarItem {
       className: classes.controls,
     });
 
-    this._carAnimator = new CarAnimator(this._model.icon);
-
     carControls.append(
       this._name.element,
-      this._selectBtn.element,
-      this._deleteBtn.element,
-      this._startBtn.element,
-      this._stopBtn.element
+      this._buttons._selectButton.element,
+      this._buttons._deleteButton.element,
+      this._buttons._startButton.element,
+      this._buttons._stopButton.element
     );
 
     this._track.append(this._model.icon);
@@ -113,47 +129,89 @@ export class CarItem {
   }
 
   private handleSelect(car: ICar) {
-    this._tunning(car);
+    this._parameters.tunning(car);
+  }
+  private async handleDelete(id: number) {
+    const isDeleted = await deleteCar(id);
+    if (isDeleted) this._parameters.fetch();
   }
 
-  private async handleStop(id?: number) {
+  private async handleTestDrive(id: number) {
+    const data = await this.handleStart(id);
+
+    if (!data) return console.log('engine is broken');
+
+    await this.handleMove(data);
+  }
+  public async handleStop(id?: number) {
     if (id) {
       await carEngineControl({
         id,
         status: 'stopped',
       });
     }
+    if (this._isWinning) {
+      this._isWinning = false;
+      this.element.lastChild?.remove();
+    }
 
     this._carAnimator.reset();
   }
-  private async handleDelete(id: number) {
-    const isDeleted = await deleteCar(id);
-    if (isDeleted) this._fetch();
-  }
 
   public async handleStart(id?: number) {
-    if (id) {
-      const started: IStartResponse = await carEngineControl({
-        id,
-        status: 'started',
-      });
-      const { distance, velocity } = started;
-      const trackLength =
-        Number.parseFloat(
-          window
-            .getComputedStyle(this._track.element)
-            .width.slice(data.START_INDEX, data.END_INDEX)
-        ) -
-        Number.parseFloat(
-          window
-            .getComputedStyle(this._model.icon)
-            .width.slice(data.START_INDEX, data.END_INDEX)
-        );
-      this._carAnimator.start(distance, velocity, trackLength);
-      const drive = await carEngineControl({ id, status: 'drive' });
+    if (!id) return;
 
-      if (drive.error) this._carAnimator.stop();
+    const started: IStartResponse = await carEngineControl({
+      id,
+      status: 'started',
+    });
+    if (started) {
+      return started;
     }
+  }
+
+  public async handleMove(data: IStartResponse) {
+    const trackWidth = this._track.element.clientWidth;
+    const carWidth = this._model.icon.clientWidth;
+
+    const trackLength = trackWidth - carWidth;
+    const duration = this._carAnimator.start(
+      data.distance,
+      data.velocity,
+      trackLength
+    );
+    const drive = await carEngineControl({ id: data.id, status: 'drive' });
+
+    if (drive.error) {
+      this._carAnimator.stop();
+      return {
+        id: data.id,
+        finish: false,
+        time: 0,
+      };
+    }
+
+    if (drive.success) {
+      return {
+        id: data.id,
+        finish: true,
+        time: duration,
+      };
+    }
+  }
+
+  public makeItWin(time: string) {
+    const message = new BaseElement({
+      tag: 'div',
+      className: classes.win,
+      textContent: `${this._parameters.car.name} with ${time}`,
+    });
+    this.element.append(message.element);
+    this._isWinning = true;
+  }
+
+  get id() {
+    return this._parameters.car.id;
   }
 
   get element() {

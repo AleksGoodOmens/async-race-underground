@@ -5,11 +5,17 @@ export class CarAnimator {
     this.element = element;
   }
 
-  public start(distance: number, velocity: number, trackLength: number) {
+  public start(
+    distance: number,
+    velocity: number,
+    trackLength: number
+  ): number {
     const duration = distance / trackLength / velocity;
 
     this.element.style.transition = `transform ${duration}s linear`;
     this.element.style.transform = `translateX(${trackLength}px)`;
+
+    return duration;
   }
 
   public stop() {
