@@ -1,13 +1,7 @@
-* {
-  box-sizing: border-box;
-}
-
-ul {
-  padding: 0;
-}
+@import url(https://fonts.googleapis.com/css?family=Bangers:regular);
 
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Bangers';
   line-height: 1.5;
   font-weight: 400;
 
@@ -19,6 +13,70 @@ ul {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  --font-main: 'Bangers';
+
+  --color-main: black;
+  --color-secondary: #ffffff;
+  --color-light: #bfb084;
+  --color-dark: #d98d30;
+  --color-accent: #b11c21;
+  --color-bg-300: #bfb084a3;
+  --color-bg-600: #000000ce;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+button {
+  cursor: pointer;
+  font-family: var(--font-main);
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+ul {
+  padding: 0;
+}
+
+.app {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  flex-grow: 1;
+}
+
+.page {
+  min-height: calc(100svh - 60px);
+  padding: 1rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.page-title {
+  margin: 0;
+  background-color: var(--color-dark);
+  max-width: fit-content;
+  padding: 0.5rem 1rem;
+  border-radius: 1rem;
 }
 
 .svg {

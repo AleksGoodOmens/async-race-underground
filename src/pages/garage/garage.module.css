@@ -1,5 +1,32 @@
+.page {
+  background-image: url('./bg.webp');
+  background-size: cover;
+  background-position: center;
+}
 .wrapper {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
+}
+
+.station {
+  display: grid;
+  gap: 1rem;
+}
+
+.link {
+  background-color: var(--color-bg-300);
+  padding: 0.5rem 1rem;
+  border-radius: 1rem;
+  color: var(--color-accent);
+  font-size: 1.7rem;
+}
+
+@media (width > 680px) {
+  .station {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .wrapper {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
 }

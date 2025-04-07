@@ -3,6 +3,7 @@ import { BaseElement } from '../../base/base-element';
 interface IParameters {
   textContent: string;
   callback: (event?: Event) => void;
+  className?: string;
 }
 
 export class Button {
@@ -11,6 +12,7 @@ export class Button {
     this._element = new BaseElement({
       tag: 'button',
       textContent: parameters.textContent,
+      className: parameters.className,
     });
 
     this.view(parameters);

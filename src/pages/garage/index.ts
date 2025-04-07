@@ -1,5 +1,7 @@
 import { endpoints } from '../../api/endpoints';
 import { getData } from '../../api/getData';
+import { postCar } from '../../api/postCar';
+import { updateCar } from '../../api/updateCar';
 import { BaseElement } from '../../base/base-element';
 import { Page } from '../../base/page';
 import { CarList } from '../../components/car-list';
@@ -7,6 +9,7 @@ import { Link } from '../../components/link';
 import { Loader } from '../../components/loader/loader';
 import { Pagination } from '../../components/pagination';
 import { RandomCars } from '../../components/random-cars';
+import { Repair } from '../../components/repair/repair';
 import { PATH } from '../../router/path';
 import { buildUrl } from '../../utils/buildUrl';
 import { getNumberValueFromSearchParameters } from '../../utils/getNumberValueFromSearchParameters';
@@ -15,7 +18,7 @@ import { directions, ICar } from './types';
 
 const data = {
   title: 'Garage',
-  link: 'Winners',
+  link: '===> Winners',
   searchParams: { limit: '_limit', page: '_page' },
   defaultLimit: 7,
   defaultPage: 1,
@@ -23,7 +26,10 @@ const data = {
 };
 
 const classes = {
+  page: styles['page'],
   wrapper: styles['wrapper'],
+  repairStation: styles['station'],
+  link: styles['link'],
 };
 
 export class GaragePage extends Page {
@@ -31,12 +37,23 @@ export class GaragePage extends Page {
   private _totalCars: number;
   private _cars: ICar[];
   private _carList: CarList;
+  private _carUpdate: Repair;
+  private _carCreate: Repair;
   private _pagination: Pagination;
   private _randomCars: RandomCars;
 
   constructor() {
     super();
     this.page.append(new Loader().loader);
+    this.page.classList.add(classes.page);
+    this._carUpdate = new Repair({
+      button: 'tunning',
+      callback: (car: ICar) => this.handleTunningCar(car),
+    });
+    this._carCreate = new Repair({
+      button: 'Create',
+      callback: (car: ICar) => this.handleAddCar(car),
+    });
 
     this._currentPage = getNumberValueFromSearchParameters(
       data.searchParams.page,
@@ -47,7 +64,11 @@ export class GaragePage extends Page {
 
     this.fetchCars();
 
-    this._carList = new CarList(() => this.fetchCars());
+    this._carList = new CarList({
+      setTunning: (car: ICar) => this._carUpdate.setCar(car),
+      fetchCars: () => this.fetchCars(),
+    });
+
     this._pagination = new Pagination({
       changePage: (direction: directions) => this.changePage(direction),
       clearList: () => this.clearList(),
@@ -74,21 +95,35 @@ export class GaragePage extends Page {
   public async view() {
     this.clear();
 
-    const title = new BaseElement({ tag: 'h1', textContent: data.title });
+    const title = new BaseElement({
+      tag: 'h1',
+      textContent: data.title,
+      className: 'page-title',
+    });
 
     const winnersLink = new Link({
       href: PATH.WINNERS,
       textContent: data.link,
+      className: classes.link,
       callback: () => {},
     });
+
+    const header = new BaseElement({ tag: 'header', className: 'page-header' });
+    header.append(title.element, winnersLink.link);
+
+    const repairStation = new BaseElement({
+      tag: 'div',
+      className: classes.repairStation,
+    });
+    repairStation.append(this._carUpdate.element, this._carCreate.element);
 
     const wrapper = new BaseElement({ tag: 'div', className: classes.wrapper });
     wrapper.append(this._pagination.element, this._randomCars.element);
 
     this._carList.view(this._cars);
     this.page.append(
-      title.element,
-      winnersLink.link,
+      header.element,
+      repairStation.element,
       wrapper.element,
       this._carList.list
     );
@@ -130,6 +165,20 @@ export class GaragePage extends Page {
     this.view();
   }
 
+  private async handleAddCar(car: ICar) {
+    await postCar(car);
+    this._carCreate.reset();
+    await this.fetchCars();
+  }
+
+  private async handleTunningCar(car: ICar) {
+    const updateRequest = await updateCar(car);
+    if (updateRequest) {
+      this._carUpdate.reset();
+      this.fetchCars();
+    }
+  }
+
   private update(newCars?: ICar[]) {
     if (newCars) {
       this._totalCars += newCars.length;
@@ -143,6 +192,7 @@ export class GaragePage extends Page {
       this._carList.view(this._cars);
     }
     this._pagination.update({
+      totalCars: this._totalCars,
       totalPages: Math.ceil(this._totalCars / data.defaultLimit),
       currentPage: this._currentPage,
     });

@@ -1,0 +1,9 @@
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 60px;
+  background-color: var(--color-dark);
+  color: var(--color-main);
+  font-size: 2rem;
+}

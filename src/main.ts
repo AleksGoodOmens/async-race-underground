@@ -1,5 +1,6 @@
 import './style.css';
 
+import { BaseElement } from './base/base-element';
 import { Header } from './layout/header';
 import { GaragePage } from './pages/garage';
 // import { GaragePage } from './pages/garage';
@@ -15,8 +16,8 @@ export type IRoutes = {
 };
 
 export class App {
-  private _container: HTMLDivElement;
-  private _content: HTMLElement;
+  private _container: BaseElement<HTMLDivElement>;
+  private _content: BaseElement<HTMLDivElement>;
   // public _homePage: HomePage;
   // public _garagePage: GaragePage;
   // public _winnersPage: WinnersPage;
@@ -24,8 +25,14 @@ export class App {
   public router: Router;
 
   constructor() {
-    this._container = document.createElement('div');
-    this._content = document.createElement('main');
+    this._container = new BaseElement<HTMLDivElement>({
+      tag: 'div',
+      className: 'app',
+    });
+    this._content = new BaseElement<HTMLDivElement>({
+      tag: 'div',
+      className: 'main',
+    });
     this.view();
 
     // this._garagePage = new GaragePage(this);
@@ -51,16 +58,16 @@ export class App {
   }
 
   private showPage(page: HTMLDivElement) {
-    while (this._content.lastChild) {
-      this._content.lastChild.remove();
+    while (this._content.element.lastChild) {
+      this._content.element.lastChild.remove();
     }
 
     this._content.append(page);
   }
 
   private view() {
-    this._container.append(new Header().container, this._content);
-    document.body.append(this._container);
+    this._container.append(new Header().container, this._content.element);
+    document.body.append(this._container.element);
   }
 
   get container() {

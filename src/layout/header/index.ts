@@ -1,13 +1,22 @@
+import { BaseElement } from '../../base/base-element';
 import { PATH } from '../../router/path';
+import styles from './header.module.css';
 
 const data = {
   logo: 'Async-Race Underground',
 };
 
+const classes = {
+  header: styles['container'],
+};
+
 export class Header {
-  private _container: HTMLHeadElement;
+  private _container: BaseElement<HTMLHeadElement>;
   constructor() {
-    this._container = document.createElement('header');
+    this._container = new BaseElement({
+      tag: 'header',
+      className: classes.header,
+    });
     this.view();
   }
 
@@ -20,6 +29,6 @@ export class Header {
   }
 
   get container() {
-    return this._container;
+    return this._container.element;
   }
 }

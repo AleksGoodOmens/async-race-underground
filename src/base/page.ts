@@ -1,17 +1,19 @@
+import { BaseElement } from './base-element';
+
 export abstract class Page {
-  private _page: HTMLDivElement;
+  private _page: BaseElement<HTMLDivElement>;
 
   constructor() {
-    this._page = document.createElement('div');
+    this._page = new BaseElement({ tag: 'div', className: 'page' });
   }
 
   public clear() {
-    while (this._page.firstChild) {
-      this._page.firstChild.remove();
+    while (this._page.element.lastChild) {
+      this._page.element.lastChild.remove();
     }
   }
 
   public get page() {
-    return this._page;
+    return this._page.element;
   }
 }
