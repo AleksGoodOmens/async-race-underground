@@ -8,6 +8,7 @@ import { CarList } from '../../components/car-list';
 import { Link } from '../../components/link';
 import { Loader } from '../../components/loader/loader';
 import { Pagination } from '../../components/pagination';
+import { RaceControls } from '../../components/race-controls';
 import { RandomCars } from '../../components/random-cars';
 import { Repair } from '../../components/repair/repair';
 import { PATH } from '../../router/path';
@@ -37,13 +38,16 @@ export class GaragePage extends Page {
   private _totalCars: number;
   private _cars: ICar[];
   private _carList: CarList;
+  private _raceControls: RaceControls;
   private _carUpdate: Repair;
   private _carCreate: Repair;
   private _pagination: Pagination;
   private _randomCars: RandomCars;
+  private _navigate: () => void;
 
-  constructor() {
+  constructor(navigateTo: () => void) {
     super();
+    this._navigate = navigateTo;
     this.page.append(new Loader().loader);
     this.page.classList.add(classes.page);
     this._carUpdate = new Repair({
@@ -63,11 +67,12 @@ export class GaragePage extends Page {
     this._cars = [];
 
     this.fetchCars();
-
     this._carList = new CarList({
+      cars: this._cars,
       setTunning: (car: ICar) => this._carUpdate.setCar(car),
       fetchCars: () => this.fetchCars(),
     });
+    this._raceControls = new RaceControls();
 
     this._pagination = new Pagination({
       changePage: (direction: directions) => this.changePage(direction),
@@ -75,7 +80,6 @@ export class GaragePage extends Page {
     });
     this._randomCars = new RandomCars((cars: ICar[]) => this.update(cars));
   }
-
   public changePage(direction: directions) {
     this._currentPage += direction;
 
@@ -84,14 +88,12 @@ export class GaragePage extends Page {
     this._carList.list.append(new Loader().loader);
     this.fetchCars();
   }
-
   private updateUrl() {
     const searchParameters = new URLSearchParams();
     searchParameters.set(data.searchParams.page, String(this._currentPage));
 
     window.location.hash = `${PATH.GARAGE}?${searchParameters.toString()}`;
   }
-
   public async view() {
     this.clear();
 
@@ -105,7 +107,7 @@ export class GaragePage extends Page {
       href: PATH.WINNERS,
       textContent: data.link,
       className: classes.link,
-      callback: () => {},
+      callback: this._navigate,
     });
 
     const header = new BaseElement({ tag: 'header', className: 'page-header' });
@@ -125,10 +127,10 @@ export class GaragePage extends Page {
       header.element,
       repairStation.element,
       wrapper.element,
+      this._raceControls.element,
       this._carList.list
     );
   }
-
   public async clearList() {
     this._cars = [];
     this._totalCars = 0;
@@ -136,8 +138,7 @@ export class GaragePage extends Page {
     this.updateUrl();
     this.fetchCars();
   }
-
-  public async fetchCars() {
+  public fetchCars() {
     const url = buildUrl(endpoints.BASE, endpoints.GARAGE, {
       [data.searchParams.limit]: getNumberValueFromSearchParameters(
         data.searchParams.limit,
@@ -146,31 +147,31 @@ export class GaragePage extends Page {
       [data.searchParams.page]: this._currentPage,
     });
 
-    const returnedData = await getData<ICar[]>(url);
+    (async () => {
+      const returnedData = await getData<ICar[]>(url);
+      if ('error' in returnedData) {
+        this.viewError(returnedData.error);
+        return;
+      }
 
-    if ('error' in returnedData) {
-      this.viewError(returnedData.error);
-      return;
-    }
+      this._cars = returnedData.data;
 
-    this._cars = returnedData.data;
+      if (returnedData.totalAmount) {
+        const value = Number.parseInt(returnedData.totalAmount);
 
-    if (returnedData.totalAmount) {
-      const value = Number.parseInt(returnedData.totalAmount);
+        this._totalCars = value;
+        this.update();
+      }
 
-      this._totalCars = value;
-      this.update();
-    }
-
-    this.view();
+      this.view();
+      this._raceControls.cars = this._carList.cars;
+    })();
   }
-
   private async handleAddCar(car: ICar) {
     await postCar(car);
     this._carCreate.reset();
-    await this.fetchCars();
+    this.fetchCars();
   }
-
   private async handleTunningCar(car: ICar) {
     const updateRequest = await updateCar(car);
     if (updateRequest) {
@@ -178,7 +179,6 @@ export class GaragePage extends Page {
       this.fetchCars();
     }
   }
-
   private update(newCars?: ICar[]) {
     if (newCars) {
       this._totalCars += newCars.length;
@@ -190,6 +190,7 @@ export class GaragePage extends Page {
           )
         );
       this._carList.view(this._cars);
+      this._raceControls.cars = this._carList.cars;
     }
     this._pagination.update({
       totalCars: this._totalCars,
@@ -197,7 +198,6 @@ export class GaragePage extends Page {
       currentPage: this._currentPage,
     });
   }
-
   private viewError(message: string) {
     this.clear();
     const h1 = new BaseElement<HTMLHeadingElement>({

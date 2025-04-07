@@ -1,6 +1,5 @@
 import { Page } from '../../base/page';
 import { Link } from '../../components/link';
-import { App } from '../../main';
 import { PATH } from '../../router/path';
 
 const data = {
@@ -9,8 +8,11 @@ const data = {
 };
 
 export class WinnersPage extends Page {
-  constructor(app: App) {
-    super(app);
+  private _navigate: () => void;
+  constructor(navigateTo: () => void) {
+    super();
+    this._navigate = navigateTo;
+    this.view();
   }
 
   public view() {
@@ -21,10 +23,9 @@ export class WinnersPage extends Page {
     const garageLink = new Link({
       textContent: data.link,
       href: PATH.GARAGE,
-      callback: () => this._app.router.navigate(PATH.GARAGE),
+      callback: this._navigate,
     }).link;
 
     this.page.append(title, garageLink);
-    this._app.main.append(this.page);
   }
 }
