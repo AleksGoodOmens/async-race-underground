@@ -1,5 +1,47 @@
 .container {
   display: grid;
-  grid-template-columns: auto 1fr auto auto auto auto;
+  grid-template-columns: 200px 1fr;
   gap: 1rem;
+}
+
+.controls {
+  border-radius: 1rem;
+
+  display: grid;
+  grid-template-areas:
+    'name name name name'
+    'delete select start stop';
+
+  background-color: var(--color-bg-600);
+  padding: 1rem;
+}
+
+.name {
+  grid-area: name;
+}
+
+.delete {
+  grid-area: delete;
+  background-color: var(--color-accent);
+  border-radius: 1rem;
+}
+
+.select {
+  grid-area: select;
+  background-color: var(--color-dark);
+  border-radius: 1rem;
+}
+
+.track {
+  border-bottom: 5px dashed var(--color-secondary);
+  background-color: var(--color-bg-600);
+  border-radius: 1rem 1rem 0 0;
+  position: relative;
+  background-image: url('./city.png');
+  background-position: center;
+}
+.car {
+  width: 6rem;
+  position: absolute;
+  bottom: -0.5rem;
 }
