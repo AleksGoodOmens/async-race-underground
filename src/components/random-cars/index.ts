@@ -2,13 +2,14 @@ import { postCar } from '../../api/postCar';
 import { BaseElement } from '../../base/base-element';
 import { carsModels } from '../../pages/garage/cars-models';
 import { ICar } from '../../pages/garage/types';
+import styles from './randomCars.module.css';
 
 const data = {
   title: 'Random Cars',
   label: 'Amount',
   minimum: 3,
   default: 100,
-  create: 'Create',
+  create: 'Random',
   error: 'Something go wrong, car not added',
   color: {
     maxHEX: 16777215,
@@ -17,13 +18,26 @@ const data = {
   },
 };
 
+const classes = {
+  container: styles['container'],
+  createBtn: styles['createBtn'],
+  title: styles['title'],
+  amount: styles['amount'],
+};
+
 export class RandomCars {
   private _element: HTMLDivElement;
   private _amount: HTMLInputElement;
   private _updateList: (newCars: ICar[]) => void;
   constructor(updateList: (newCars: ICar[]) => void) {
-    this._element = new BaseElement<HTMLDivElement>({ tag: 'div' }).element;
-    this._amount = new BaseElement<HTMLInputElement>({ tag: 'input' }).element;
+    this._element = new BaseElement<HTMLDivElement>({
+      tag: 'div',
+      className: classes.container,
+    }).element;
+    this._amount = new BaseElement<HTMLInputElement>({
+      tag: 'input',
+      className: classes.amount,
+    }).element;
     this._updateList = updateList;
     this.init();
   }
@@ -31,6 +45,7 @@ export class RandomCars {
   private init() {
     const title = new BaseElement<HTMLHeadingElement>({
       tag: 'h2',
+      className: classes.title,
       textContent: data.title,
     });
     const label = new BaseElement<HTMLLabelElement>({
@@ -47,17 +62,18 @@ export class RandomCars {
 
     const create = new BaseElement<HTMLButtonElement>({
       tag: 'button',
+      className: classes.createBtn,
       textContent: data.create,
     });
 
     create.element.addEventListener('click', (event: Event) =>
-      this.createHandler(event)
+      this.handlerCreateCars(event)
     );
 
     this._element.append(title.element, label.element, create.element);
   }
 
-  private async createHandler(event: Event) {
+  private async handlerCreateCars(event: Event) {
     const target = event.target;
     if (target instanceof HTMLButtonElement) {
       target.disabled = true;
