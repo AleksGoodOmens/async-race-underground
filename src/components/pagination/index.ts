@@ -11,17 +11,22 @@ const data = {
   back: '<<',
   next: '>>',
   amount: '1/1',
-  clear: 'delete list',
+  clear: 'Clear list',
   ONE: 1,
+  EMPTY: 0,
 };
 
 const classes = {
   container: styles['container'],
+  directionBtn: styles['direction'],
+  clearBtn: styles['clear'],
+  amount: styles['amount'],
 };
 
 interface IParameters {
   currentPage: number;
   totalPages: number;
+  totalCars: number;
 }
 
 interface IConstructorParameters {
@@ -37,6 +42,7 @@ export class Pagination {
   private _clear: Button;
   private _changePage: (direction: directions) => void;
   private _clearList: () => void;
+  private _totalCars: BaseElement<HTMLDivElement>;
   constructor(parameters: IConstructorParameters) {
     this._container = new BaseElement<HTMLDivElement>({
       tag: 'div',
@@ -44,19 +50,29 @@ export class Pagination {
     });
     this._back = new Button({
       textContent: data.back,
-      callback: () => this.changePageHandler(directions.back),
+      className: classes.directionBtn,
+      callback: () => this.handlerChangePage(directions.back),
     });
     this._next = new Button({
       textContent: data.next,
-      callback: () => this.changePageHandler(directions.next),
+      className: classes.directionBtn,
+      callback: () => this.handlerChangePage(directions.next),
     });
     this._amount = new BaseElement<HTMLDivElement>({
       tag: 'div',
       textContent: data.amount,
+      className: classes.amount,
     }).element;
+
+    this._totalCars = new BaseElement({
+      tag: 'div',
+      textContent: String(data.EMPTY),
+    });
+
     this._clear = new Button({
       textContent: data.clear,
-      callback: () => this.deletePageHandler(),
+      className: classes.clearBtn,
+      callback: () => this.handlerDeletePage(),
     });
     this._changePage = parameters.changePage;
     this._clearList = parameters.clearList;
@@ -65,11 +81,12 @@ export class Pagination {
       this._back.element,
       this._amount,
       this._next.element,
+      this._totalCars.element,
       this._clear.element
     );
   }
 
-  private async deletePageHandler() {
+  private async handlerDeletePage() {
     this._clear.element.disabled = true;
 
     const url = buildUrl(endpoints.BASE, endpoints.GARAGE, {});
@@ -85,7 +102,7 @@ export class Pagination {
     this._clearList();
   }
 
-  private changePageHandler(direction: directions) {
+  private handlerChangePage(direction: directions) {
     this._changePage(direction);
   }
 
@@ -101,6 +118,8 @@ export class Pagination {
 
     if (!parameters.totalPages) this._clear.element.disabled = true;
     else this._clear.element.disabled = false;
+
+    this._totalCars.element.textContent = String(parameters.totalCars);
   }
 
   public get element() {
