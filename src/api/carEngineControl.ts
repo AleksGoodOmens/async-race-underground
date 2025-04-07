@@ -7,6 +7,7 @@ interface IParameters {
 }
 
 export interface IStartResponse {
+  id: number;
   velocity: number;
   distance: number;
 }
@@ -59,6 +60,7 @@ export async function carEngineControl(
     if (parameters.status === 'started') {
       return {
         ...json,
+        id: parameters.id,
         success: true,
       };
     }
